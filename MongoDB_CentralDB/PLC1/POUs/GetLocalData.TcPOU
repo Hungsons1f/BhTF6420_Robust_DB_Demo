@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="GetLocalData" Id="{50581a5d-0444-430f-a264-d08ecd1b1382}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM GetLocalData
+VAR
+	fbSqlDatabase : FB_SQLDatabaseEvt(sNetID := '', tTimeout := T#5S);
+	fbSqlCommand : FB_SQLCommandEvt(sNetID := '', tTimeout := T#5S);
+	fbSqlResult: FB_SQLResultEvt(sNetID:='', tTimeout := T#5S);
+	myDBID: UDINT := 1;
+	sTableName: STRING := 'Data';
+	sCmd: STRING(1000);
+
+	tcMessage1 : I_TcMessage;
+	tcMessage2 : I_TcMessage;
+	tcMessage3 : I_TcMessage;
+	tcMessage4 : I_TcMessage;
+
+	systime: GETSYSTEMTIME;
+	currentTime: T_FILETIME;
+	iId: LINT := 1;
+	
+	bFirstScan: BOOL := TRUE;
+	bExecute: bool;
+	fbTon: TON;
+	bLapse: BOOL := FALSE;
+	bRead: BOOL:= FALSE;
+	
+	temp: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF (bFirstScan) THEN
+	IF fbSqlDatabase.Connect(myDBID) THEN
+		bFirstScan := FALSE;
+		IF fbSqlDatabase.bError THEN
+			tcMessage1:= fbSqlDatabase.ipTcResult;
+			bFirstScan := TRUE;
+		END_IF
+	END_IF
+END_IF
+
+fbTon(IN:= NOT fbTon.Q, PT:= T#100mS);
+IF fbTon.Q THEN
+	bExecute := TRUE;
+END_IF
+
+IF bExecute AND NOT bFirstScan AND GlobalData.blocalUpdated THEN
+	GlobalData.bMeasure:= TRUE;
+	CreateSelect();
+		
+	IF fbSqlDatabase.CreateCmd(ADR(fbSqlCommand)) THEN
+		IF fbSqlDatabase.bError THEN
+			tcMessage2:= fbSqlDatabase.ipTcResult;
+		END_IF
+	END_IF
+		
+	IF NOT bRead THEN 
+		IF fbSQLCommand.ExecuteDataReturn(ADR(sCmd), LEN(sCmd), ADR(fbSqlResult)) THEN
+			IF fbSQLCommand.bError THEN
+				tcMessage3 := fbSQLCommand.ipTcResult;
+			END_IF
+			bRead:= TRUE;
+		END_IF
+	ELSE
+		IF fbSqlResult.Read(0, 1, ADR(GlobalData.aReadStruct), SIZEOF(GlobalData.aReadStruct), FALSE, TRUE) THEN
+			IF fbSqlResult.bError THEN
+				tcMessage4:= fbSqlResult.ipTcResult;
+			END_IF
+			bRead:= FALSE;
+			bExecute:= FALSE;
+			IF GlobalData.aReadStruct.iId <> 0 THEN
+				GlobalData.blocalUpdated:= FALSE;
+				GlobalData.bLocalGot:= TRUE;
+			END_IF
+		END_IF
+	END_IF
+	
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Action Name="CreateSelect" Id="{99874643-5b02-4517-bca8-f7816b06d6db}">
+      <Implementation>
+        <ST><![CDATA[sCmd := 'SELECT * FROM ';
+sCmd := concat(sCmd, sTableName);
+sCmd := concat(sCmd, ' WHERE Sync=0 LIMIT 1');
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="GetLocalData">
+      <LineId Id="29" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="3" />
+      <LineId Id="212" Count="2" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="49" Count="4" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="142" Count="2" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="149" Count="4" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="304" Count="1" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="GetLocalData.CreateSelect">
+      <LineId Id="2" Count="0" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="GetLocalPlcEx" Id="{c4b72cc0-13bc-4bc0-a837-24944c1ee986}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM GetLocalPlcEx
+VAR
+	fbPLCDBRead : FB_PLCDBReadEvt (sNetID := '', tTimeout := T#5S);
+	ColumnNames_read : ARRAY [0..4] OF STRING(50);
+	myDBID: uint := 1;
+	sMyTableName : T_MaxString:='Data';
+	myRecordRead : stData;
+	tcMessage_read : I_TcMessage;
+
+	fbTon: TON;
+	bRead: bool;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbTon(IN:= NOT fbTon.Q, PT:= T#200MS);
+IF fbTon.Q THEN
+	bRead:= TRUE;
+END_IF
+
+IF bRead THEN
+	ColumnNames_read[0] := 'ID';
+	ColumnNames_read[1] := 'Timestamp';
+	ColumnNames_read[2] := 'Speed';
+	ColumnNames_read[3] := 'Pos';
+	ColumnNames_read[4] := 'Pulse';
+	
+	IF fbPLCDBRead.ReadStruct(
+		hDBID:= myDBID,
+		sTableName:= sMyTableName,
+		pColumnNames:= ADR(ColumnNames_read),
+		cbColumnNames:= SIZEOF(ColumnNames_read),
+		sOrderByColumn:= 'ID', 
+		eOrderType:= E_OrderType.DESC, 
+		nStartIndex:= 0, 
+		nRecordCount:= 1, 
+		pData:= ADR(myRecordRead), 
+		cbData:= SIZEOF(myRecordRead)
+	)
+	THEN
+		IF fbPLCDBRead.bError THEN
+		tcMessage_read := fbPLCDBRead.ipTcResult;
+		END_IF
+		bRead:= FALSE;
+	END_IF	
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="GetLocalPlcEx">
+      <LineId Id="14" Count="0" />
+      <LineId Id="58" Count="2" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="19" Count="20" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

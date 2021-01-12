@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="PostRemoteData" Id="{739b46bf-d99f-41e1-a248-f35519a17b2d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PostRemoteData
+VAR
+	//Query Builder for Document DB
+	fbNoSqlQueryBuilder_DocumentDB: FB_NoSQLQueryBuilder_DocumentDB;
+	InsertQueryOption: T_QueryOptionDocumentDB_Insert;
+	sDocument: STRING (1000);
+	sDBName: STRING := 'Datalog';
+
+	//Document json writer
+	fbJsonWriter: FB_JsonSaxWriter;
+	
+	//Query Execution
+	fbNoSqlQuery: FB_NoSQLQueryEvt(sNetID:= '', tTimeout:= T#5S);
+	myDBID: UDINT := 2;
+	TcMessage: I_TcMessage;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF GlobalData.bLocalGot THEN
+	CreateQuery();
+	CreateDocument();
+	
+	IF fbNoSqlQuery.Execute(hDBID:= myDBID, iNoSQLQueryBuilder:= fbNoSqlQueryBuilder_DocumentDB) THEN
+		GlobalData.bLocalGot := FALSE;
+		GlobalData.bRemotePosted := TRUE;
+		IF fbNoSqlQuery.bError THEN
+			TcMessage:= fbNoSqlQuery.ipTcResult;
+			GlobalData.bLocalGot := TRUE;
+			GlobalData.bRemotePosted := FALSE;
+		END_IF
+	END_IF
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Action Name="CreateDocument" Id="{bb4591cd-873d-4799-aa4b-b85a07d5e57e}">
+      <Implementation>
+        <ST><![CDATA[fbJsonWriter.StartObject();
+fbJsonWriter.AddKey('Timestamp');
+fbJsonWriter.AddDateTime(GlobalData.aReadStruct.dtTimestamp);
+fbJsonWriter.AddKey('Speed');
+fbJsonWriter.AddLreal(GlobalData.aReadStruct.rSpeed);
+fbJsonWriter.AddKey('Pos');
+fbJsonWriter.AddLreal(GlobalData.aReadStruct.rPos);
+fbJsonWriter.AddKey('Pulse');
+fbJsonWriter.AddBool(GlobalData.aReadStruct.bPulse);
+fbJsonWriter.EndObject();
+sDocument := fbJsonWriter.GetDocument();
+fbJsonWriter.ResetDocument();
+
+	
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="CreateQuery" Id="{2655315e-f323-4ad5-bfc9-07379b6667a2}">
+      <Implementation>
+        <ST><![CDATA[InsertQueryOption.pDocuments := ADR(sDocument);
+InsertQueryOption.cbDocuments := SIZEOF(sDocument);
+
+fbNoSqlQueryBuilder_DocumentDB.eQueryType := E_DocumentDbQueryType.InsertOne;
+fbNoSqlQueryBuilder_DocumentDB.sCollectionName := sDBName;
+fbNoSqlQueryBuilder_DocumentDB.pQueryOptions := ADR(InsertQueryOption);
+fbNoSqlQueryBuilder_DocumentDB.cbQueryOptions := SIZEOF(InsertQueryOption);
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="PostRemoteData">
+      <LineId Id="148" Count="0" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="206" Count="1" />
+      <LineId Id="156" Count="1" />
+      <LineId Id="209" Count="1" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="160" Count="1" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="28" Count="0" />
+    </LineIds>
+    <LineIds Name="PostRemoteData.CreateDocument">
+      <LineId Id="18" Count="10" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="PostRemoteData.CreateQuery">
+      <LineId Id="2" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="4" Count="2" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

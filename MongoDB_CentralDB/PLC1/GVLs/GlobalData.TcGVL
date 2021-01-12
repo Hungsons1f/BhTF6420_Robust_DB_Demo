@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <GVL Name="GlobalData" Id="{3dca4ac0-a2c9-4424-81d1-723d81d6bac9}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	bRemotePosted: BOOL := FALSE;
+	bLocalGot: BOOL:= FALSE;
+	blocalUpdated: BOOL:= TRUE;
+	bMeasure: BOOL;
+	aReadStruct : stData;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <Task Name="DBTask" Id="{3fce76a0-c462-45f9-862d-b4b5873524e8}">
+    <!--CycleTime in micro seconds.-->
+    <CycleTime>100</CycleTime>
+    <Priority>22</Priority>
+    <PouCall>
+      <Name>GetLocalData</Name>
+    </PouCall>
+    <PouCall>
+      <Name>PostRemoteData</Name>
+    </PouCall>
+    <PouCall>
+      <Name>UpdateSync</Name>
+    </PouCall>
+    <TaskFBGuid>{7bc406d7-1429-4416-9aae-cee85c713935}</TaskFBGuid>
+    <Fb_init>{b14365b0-a179-46e2-a21d-aa51705ca9f0}</Fb_init>
+    <Fb_exit>{5b4f3341-f623-4f57-8bf2-ddf08229e201}</Fb_exit>
+    <CycleUpdate>{51f9e14c-79a0-4022-a68c-82bfe72ca4fb}</CycleUpdate>
+    <PostCycleUpdate>{93adae14-3560-4cbb-81a2-7bb693da62c4}</PostCycleUpdate>
+  </Task>
+</TcPlcObject>
